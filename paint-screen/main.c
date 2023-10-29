@@ -3,13 +3,15 @@
 #include <stdio.h>
 #include <conio.h>
 #include <string.h>
+#include <stdbool.h>
 
 typedef uint8_t u8;
 typedef uint16_t u16;
 
 void gr();
-void gr_clear();
-void paint(int color);
+void select(bool page2);
+void clear(bool page2);
+void paint(bool page2, int color);
 
 char _read_val; // needed so the compiler doesn't optimize away the read
 #define ADDR(a) ((char*)a)
@@ -37,18 +39,39 @@ enum low_res_color {
 
 int main() {
     int i;
-    cgetc();
+    bool screen;
 
     gr();
+    clear(0);
+    clear(1);
     cgetc();
 
+    // Switch display buffer, *then* paint.
     for (i = 0; i < 16; i++) {
-        gr_clear();
-        cgetc();
+        screen = i % 2;
 
-        paint(i);
+        select(screen);
+        paint(screen, i);
         cgetc();
     }
+
+    clear(0);
+    clear(1);
+    select(1);
+    cgetc();
+
+    // Pre-paint, before switching display buffers.
+    // Will this look any smooth-er / more instant?
+    // (update: a little less flicker, I think; but they're both pretty decent)
+    for (i = 0; i < 16; i++) {
+        screen = i % 2;
+
+        paint(screen, i);
+        select(screen);
+        cgetc();
+    }
+
+    select(0);
 
     return 0;
 }
@@ -58,11 +81,17 @@ void gr() {
     WRITE(0xC050, 0);
 }
 
-void gr_clear() {
-    // Note that this clobbers screen holes.
-    memset(ADDR(0x400), 0, 0x400);
+void select(bool page2) {
+    READ(0xC054 + page2);
 }
 
-void paint(int color) {
-    memset(ADDR(0x400), color << 4 | color, 0x400);
+void clear(bool page2) {
+    // Note that this clobbers screen holes.
+    u16 base = page2 ? 0x800 : 0x400;
+    memset(ADDR(base), 0, 0x400);
+}
+
+void paint(bool page2, int color) {
+    u16 base = page2 ? 0x800 : 0x400;
+    memset(ADDR(base), color << 4 | color, 0x400);
 }
