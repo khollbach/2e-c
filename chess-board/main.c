@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <conio.h>
 
+char _read_val; // needed so the compiler doesn't optimize away the read
+#define ADDR(a) ((char*)a)
+#define READ(a) (_read_val = *ADDR(a))
+#define WRITE(a, x) (*ADDR(a) = x)
+
 int main() {
     unsigned char x, y;
-    int i;
 
     clrscr();
     screensize(&x, &y); // 40, 24
@@ -11,12 +15,10 @@ int main() {
     cprintf("(press any key to continue)\r\n");
     cgetc();
 
-    // Ok. So this just prints a bunch of dashes.
-    // Not what I wanted.
-    for (i = y / 2; i < y; i++) {
-        chlinexy(0, i, x);
-    }
+    WRITE(0xC050, 0); // graphics mode
     cgetc();
+
+    READ(0xC051); // back to text mode
 
     return 0;
 }
