@@ -1,5 +1,16 @@
+#include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <conio.h>
+#include <string.h>
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+
+void gr();
+void gr_clear();
+void draw_chessboard();
+u16 gr_coord_to_addr(u8 x, u8 y);
 
 char _read_val; // needed so the compiler doesn't optimize away the read
 #define ADDR(a) ((char*)a)
@@ -26,25 +37,61 @@ enum low_res_color {
 };
 
 int main() {
-    int x, y;
+    cgetc();
 
+    gr();
     cgetc();
-    WRITE(0xC050, 0); // graphics mode
+
+    gr_clear();
     cgetc();
-    clrscr();
+
+    draw_chessboard();
     cgetc();
+
+    return 0;
+}
+
+// Activate graphics mode.
+void gr() {
+    WRITE(0xC050, 0);
+}
+
+void gr_clear() {
+    // Note that this clobbers screen holes.
+    memset(ADDR(0x400), 0, 0x400);
+}
+
+void draw_chessboard() {
+    int x, y;
     for (y = 0; y < 8; y++) {
         for (x = 0; x < 8; x++) {
             if ((x + y) % 2 == 0) {
-                WRITE(0x0400 + y * 40 + x, white);
-
-                //WRITE(0x0600 + y*2 * 40 + x, white);
-                //WRITE(0x0600 + (y*2+1) * 40 + x, white);
+                WRITE(gr_coord_to_addr(x, y), white << 4 | white);
             }
         }
-        cgetc();
     }
-    //cgetc();
+}
 
-    return 0;
+u16 gr_coord_to_addr(u8 x, u8 y) {
+    u8 group;
+    u16 base, offset;
+    assert(x < 40);
+    assert(y < 24);
+
+    group = y / 8;
+    switch (group) {
+    case 0:
+        base = 0x400;
+        break;
+    case 1:
+        base = 0x428;
+        break;
+    case 2:
+        base = 0x450;
+        break;
+    }
+
+    offset = y % 8 * 0x80;
+
+    return base + offset + x;
 }
