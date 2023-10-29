@@ -24,10 +24,7 @@ char buf[256];
 int main() {
     int ret;
 
-    // todo: clear screen (`HOME` in BASIC, but how do I do it from C?)
-    //
-    // Couldn't find a function in the cc65 conio.h docs;
-    // maybe there's info in the //e Tech Ref Manual?
+    clrscr();
 
     while (1) {
         play();
@@ -60,9 +57,6 @@ void play() {
     // will the secret number always be 1?
     // UPDATE: yep, that's exactly what happens... todo: fix it
 
-    // todo: the kbhit loop doesn't prevent the keypress
-    // from being echoed -- look into a way to do that!
-
     // Gather "randomness".
     printf("\n");
     printf("Guess the number! Press any key to begin\n"); // exactly 40 chars
@@ -71,14 +65,7 @@ void play() {
         if (kbhit()) break;
         wait_time += 1;
     }
-    if (getchar() == EOF) {
-        if (feof(stdin)) {
-            return;
-        } else {
-            perror("getchar");
-            exit(EXIT_FAILURE);
-        }
-    }
+    cgetc(); // consume the pending keypress
 
     secret_number = wait_time % 100 + 1;
 
