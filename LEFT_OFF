@@ -1,0 +1,60 @@
+Ok, so the old version of cc65 was configured by default to emit programs that can be loaded into memory address 0x2000.
+
+That worked fine for text and low-res graphics, but 0x2000 is the high-res graphics buffer, so we want to load the programs at 0x4000 (or 0x6000 or w/e). The new version of cc65 has configurations to do exactly this, and even some graphical demo programs under `$REPO_ROOT/samples/` (but I haven't tried any of them yet).
+
+The issue is that, currently, when we compile main.c with the new version of cc65, it's emitting a program that has 59 bytes of 'exe-header' (AppleSingle ?) nonsense before the first instruction. We verified this by hexdump-ing and diff-ing binaries produced by the new and old compilers. And we even got a new-compiler binary to run, by deleting the first 59 bytes in bash (`tail -c +59`, iirc) and then loading the result onto the device. And yeah! It worked as expected.
+
+So, to-do: get the new compiler to stop emitting headers somehow.
+
+We have both version installed to the system (maybe that's a mistake?), the old one is under /usr/local/bin/cc65 and the new one is under /usr/bin/cc65. The reason I kept the old one installed, is it didn't seem to work properly when it was un-installed and we ran it via an absolute path to its source directory. BUT, get this, the specific issue is that it produced binaries with that *same* 59 byte header as the new compiler. (TODO: verify this, I've been assuming this, and have never verified it! It doesn't seem to make sense, so I really want to check.)
+
+Next-up:
+* uninstall both cc65's
+    (done)
+* verify behaviour of old cc65 when run w/o installing
+    (done. And nope, I must've been confused. The old version works as expected)
+    (one note: old's apple2.cfg produces a 4-byte header that looks to be
+        (offset,len) -- something like (803,1b03)
+     whereas apple2-system.cfg does not. The latter also defaults to 0x2000
+     whereas the former defaults to 0x803 for the load address.)
+
+Now:
+* re-group, and think of how you're gonna trouble-shoot new cc65
+
+new-cc65 notes:
+  * looks like the linker uses `-C apple2.cfg` by default when you pass -t apple2
+  * experimentally (via hexdumps) I've observed the following:
+    `-C apple2.cfg` uses a load addr of 0x803, whereas
+    `-C apple2-system.cfg` uses a load addr of 0x2000.
+    `-C apple2-hgr.cfg` starts at 0x803, but has a large block of zeros
+        up to about 0x3838. It also gives the following warning:
+            ld65: Warning: /share/cc65/cfg/apple2-hgr.cfg:50: Segment 'HGR' does not exist
+        See their sample programs for how to specify the contents of that memory
+        (and presumably make the warning go away)
+  * also experimentally, passing the -D__EXEHDR__=0 argument to cl65
+    appears to do exactly nothing to the output binary
+  * looking at the .cfg files in vim, there's no difference between the apple2
+    verions and the apple2enh versions -- they're literally identical.
+
+If we comment out the EXEHDR segment in apple2-system.cfg, we get:
+  Dumping 'HEADER'
+  Dumping 'MAIN'
+    Writing 'STARTUP'
+    Writing 'LOWCODE'
+    Writing 'CODE'
+    Writing 'RODATA'
+    Writing 'DATA'
+    Writing 'INIT'
+    Writing 'ONCE'
+ld65: Error: Missing memory area assignment for segment 'EXEHDR'
+
+misc note: you can pass multiple separate `-v -v` switches to ld/cl to get a dump
+
+In here https://cc65.github.io/doc/ld65.html searching for optional=yes, we find:
+* It seems like the exeheader is in fact an optional *input* to the linker
+* So I'm guessing we'll need to look at an earlier stage to disable it.
+    * compiler? assembler? who knows... (to-do!)
+
+
+TODO: it looks like the `cl65` utility isn't getting the -D def'ns ?
+UPDATE: Ok, I just needed `-Wl -D__EXEHDR__=0` instead of without the -Wl
