@@ -1,0 +1,47 @@
+Apple ii graphics experiments
+
+1. Text io: reverse a string
+2. Guessing game
+3. Draw chessboard
+4. Paint the screen naively, see if you can see the screen tearing. (On keypress)
+5. Double buffer, be able to toggle between both low res screens.(on keypress)
+
+6. Figure out how hi-res graphics work:
+* draw 0x00 thru 0xff tiling the screen, and see what it looks like.
+    * diversion: figure out how to configure the compiler
+      for a different load address (done!)
+
+    ^ LEFT OFF HERE ^
+
+7. double-hi-res ??
+
+8. Draw RC logo in hi res. On keypress toggle b/w white and green.
+9. Tile the screen with the Pac-Man ghost outline, to prove out single color hi res
+
+10. Display a 2-bit color still from a Pokémon game — might be harder and involve converting between image formats (could be a fun pairing project)
+11. Pumpkin game-of-life (could be good for pairing)
+
+
+Other ideas:
+* game of life but with ghosts (multi-color!)
+* rc logo bit.ly/2P0qu6N
+* wordle (credit sengmin for the idea)
+    * word//e ?
+(these ones might be easier in rust):
+* footsies
+* chess
+* go
+
+Misc:
+* stream images directly to the screen buffer over audio ??
+    (think about this a bit; are there any cool ways to apply it?)
+> It's probably pretty slow, so it wouldn't be great for video.
+> I guess you could do like a slideshow or something...
+> (Maybe a simple visualizion of the data transfer speed?)
+
+> Riffing on the slideshow idea, it would be cool to have a program that
+> takes in a list of images, and draws them to the screen in sequence.
+> If we did that with a bunch of stills from an old nintendo game that
+> could be pretty nice.
+> This would require getting hi-res graphics working, and could be a cool
+> target project to motivate that.
