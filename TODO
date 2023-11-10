@@ -33,6 +33,8 @@ Other ideas:
 * maze generator
     * seems like there's wall glyphs!
     * https://en.wikipedia.org/wiki/Apple_II_character_set
+        UPDATE: haha just kidding, this wiki page is completely wrong
+        See: https://retrocomputing.stackexchange.com/questions/8652
 * game of life but with ghosts (multi-color!)
 * rc logo bit.ly/2P0qu6N
 * wordle (credit sengmin for the idea)
@@ -46,6 +48,7 @@ Other ideas:
 * pokemon sokoban (can we do hi-res greyscale if we use a monochrome display?)
 * snakes and ladders
 * Typeracer / some kind of typing test
+* 2048
 
 Existing projects to save to floppies:
 * snake
